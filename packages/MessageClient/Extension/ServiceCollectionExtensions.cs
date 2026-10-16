@@ -1,4 +1,5 @@
 using EasyNetQ;
+using EasyNetQ.Serialization.SystemTextJson;
 using MessageClient.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -17,7 +18,7 @@ public static class ServiceCollectionExtensions
         MessageHandlerOptions handlerOptions)
     {
         services.TryAddSingleton(handlerOptions);
-        services.TryAddSingleton<IBus>(_ => RabbitHutch.CreateBus(clientOptions.ConnectionString));
+        services.TryAddSingleton<IBus>(_ => RabbitHutch.CreateBus(clientOptions.ConnectionString, register => register.EnableSystemTextJson()));
         services.TryAddSingleton<IMessageClient, RabbitMqMessageClient>();
         return services;
     }

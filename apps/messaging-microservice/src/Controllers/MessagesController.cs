@@ -34,17 +34,17 @@ public class MessagesController : ControllerBase
         }
         catch (DomainException ex)
         {
-            return Problem(title: "Invalid message", detail: ex.Message, statusCode: StatusCodes.Status400BadRequest);
+            return Fail(StatusCodes.Status400BadRequest, "Invalid message", ex.Message);
         }
 
         try
         {
             if (!await _channels.ExistsAsync(message.ChannelId, cancellationToken))
-                return Problem(title: "Unknown channel", detail: $"Channel {message.ChannelId} does not exist.", statusCode: StatusCodes.Status404NotFound);
+                return Fail(StatusCodes.Status404NotFound, "Unknown channel", $"Channel {message.ChannelId} does not exist.");
         }
         catch (ChannelServiceUnavailableException ex)
         {
-            return Problem(title: "Channel service unavailable", detail: ex.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+            return Fail(StatusCodes.Status503ServiceUnavailable, "Channel service unavailable", ex.Message);
         }
 
         await _repository.Save(message);
@@ -69,4 +69,7 @@ public class MessagesController : ControllerBase
         var message = await _repository.GetById(id);
         return message is null ? NotFound() : Ok(MessageDto.From(message));
     }
+
+    private ObjectResult Fail(int status, string title, string detail)
+        => StatusCode(status, new ProblemDetails { Status = status, Title = title, Detail = detail });
 }

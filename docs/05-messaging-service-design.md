@@ -65,7 +65,7 @@ classDiagram
 
     namespace MessagingService {
         class MessagesController {
-            +PostMessage(CreateMessageRequest) IActionResult
+            +PostMessage(CreateMessageRequest, ct) IActionResult
             +GetMessage(Guid id) IActionResult
         }
         class CreateMessageRequest {
@@ -89,6 +89,7 @@ classDiagram
             +Create(channelId, authorId, content)$ Message
         }
         class DomainException
+        class ChannelServiceUnavailableException
         class IMessageRepository {
             <<interface>>
             +Save(Message) Task
@@ -117,6 +118,7 @@ classDiagram
     MessagesController ..> MessageDto
     MessagesController ..> Message : creates
     Message ..> DomainException : throws
+    IChannelDirectory ..> ChannelServiceUnavailableException : throws
     IMessageClient ..> MessagePostedEvent : publishes
 ```
 
@@ -147,6 +149,19 @@ Follows chapter 9: many small fast tests, fewer wide ones. The contract tests ar
 | **Integration** | Full round trip with **real RabbitMQ**: `POST` then the event arrives on the broker | Whole service and broker | nothing | `tests/` (needs Docker) |
 
 Mocks versus stubs (chapter 9): the Moq controller tests are **mocks** (they verify that `Save` and `PublishAsync` were called). The WireMock tests use **stubs** (canned answers from the Channel service).
+
+## Where the code is
+
+| Part | File |
+|---|---|
+| Domain rules | `apps/messaging-microservice/src/Domain/Message.cs` |
+| Interfaces (`IMessageRepository`, `IChannelDirectory`) | `apps/messaging-microservice/src/Domain/` |
+| In-memory storage, channel directories | `apps/messaging-microservice/src/Infrastructure/` |
+| REST endpoints and DTOs | `apps/messaging-microservice/src/Controllers/` |
+| Wiring (DI) | `apps/messaging-microservice/src/Program.cs` |
+| Event contract | `packages/Shared.Contracts/Events/MessagePostedEvent.cs` |
+| Message client | `packages/MessageClient/` |
+| Tests | `apps/messaging-microservice/tests/` (see its README for the table) |
 
 ## Configuration
 

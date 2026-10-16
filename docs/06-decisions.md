@@ -48,6 +48,12 @@ Short decision records. Each one states the choice, the alternatives, and the tr
 - **Choice:** .NET 8, EasyNetQ 7.8.0 (same as the lecture repository), xUnit, Moq, WireMock.Net, FluentAssertions 7 (the last version with a free licence).
 - **Why:** the teacher's Docker example is .NET 8. The task text shows .NET 7 images, which are end of life.
 
+## D9. JSON serialization of messages
+
+- **Choice:** System.Text.Json through the `EasyNetQ.Serialization.SystemTextJson` package, enabled explicitly in `AddRabbitMqMessageClient`.
+- **Why:** EasyNetQ 7 has no built-in serializer. Without one the first publish fails at runtime with "Newtonsoft.Json assembly is not found". This is easy to miss, because test projects often pull Newtonsoft.Json in indirectly and the unit tests still pass. It was found by running the service in Docker.
+- **Trade-off:** all services that exchange events must use the same wire format. Using the `MessageClient` package for every service guarantees that.
+
 ## Known limitations
 
 | Limitation | Effect | Possible fix |

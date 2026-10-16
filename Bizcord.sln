@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{186EF198-65D3-4877-8694-A92D2EF704FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "messaging-microservice", "messaging-microservice", "{946EE86F-12C0-458A-84ED-384DD80A667F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging", "apps\messaging-microservice\src\Messaging.csproj", "{2CC807A1-8148-40F4-B5DC-8DC30B4CCB7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Tests", "apps\messaging-microservice\tests\Messaging.Tests.csproj", "{587B2FCB-1510-4FBB-8A4E-25794FC0A70D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2CC807A1-8148-40F4-B5DC-8DC30B4CCB7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CC807A1-8148-40F4-B5DC-8DC30B4CCB7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CC807A1-8148-40F4-B5DC-8DC30B4CCB7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CC807A1-8148-40F4-B5DC-8DC30B4CCB7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{587B2FCB-1510-4FBB-8A4E-25794FC0A70D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{587B2FCB-1510-4FBB-8A4E-25794FC0A70D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{587B2FCB-1510-4FBB-8A4E-25794FC0A70D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{587B2FCB-1510-4FBB-8A4E-25794FC0A70D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{946EE86F-12C0-458A-84ED-384DD80A667F} = {186EF198-65D3-4877-8694-A92D2EF704FC}
+		{2CC807A1-8148-40F4-B5DC-8DC30B4CCB7F} = {946EE86F-12C0-458A-84ED-384DD80A667F}
+		{587B2FCB-1510-4FBB-8A4E-25794FC0A70D} = {946EE86F-12C0-458A-84ED-384DD80A667F}
+	EndGlobalSection
+EndGlobal

@@ -1,3 +1,5 @@
 book/
 bin/
 obj/
+.vs/
+TestResults/

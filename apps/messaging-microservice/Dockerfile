@@ -15,10 +15,12 @@ WORKDIR /src
 # The monorepo directory structure is kept so the relative ProjectReferences still resolve.
 COPY ["apps/messaging-microservice/src/Messaging.csproj", "apps/messaging-microservice/src/"]
 COPY ["packages/MessageClient/MessageClient.csproj", "packages/MessageClient/"]
+COPY ["packages/Shared.Contracts/Shared.Contracts.csproj", "packages/Shared.Contracts/"]
 RUN dotnet restore "apps/messaging-microservice/src/Messaging.csproj"
 
 COPY ["apps/messaging-microservice/src/", "apps/messaging-microservice/src/"]
 COPY ["packages/MessageClient/", "packages/MessageClient/"]
+COPY ["packages/Shared.Contracts/", "packages/Shared.Contracts/"]
 WORKDIR "/src/apps/messaging-microservice/src"
 RUN dotnet build "Messaging.csproj" -c $BUILD_CONFIGURATION --no-restore -o /app/build
 

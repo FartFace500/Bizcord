@@ -10,4 +10,15 @@ Backend of **Bizcord**, a Discord-like enterprise communication platform, built 
 | `packages/Shared.Contracts/` | Events shared between services |
 | `study/` | Chapter summaries and small study examples (not part of the assignment) |
 
-Start with [`docs/README.md`](docs/README.md) and [`docs/07-work-plan.md`](docs/07-work-plan.md) to find your way around. The code folders appear branch by branch, as described there.
+Start with [`docs/README.md`](docs/README.md) and [`docs/07-work-plan.md`](docs/07-work-plan.md) to find your way around. Each course week was developed on its own branch and merged into `main`.
+
+## Quick start
+
+```bash
+# run the service and RabbitMQ
+docker compose -f apps/messaging-microservice/docker-compose.yml up --build
+# API: http://localhost:5001/swagger   RabbitMQ UI: http://localhost:15672 (guest/guest)
+
+# run all tests (needs the .NET 8 SDK; the broker tests also need Docker)
+dotnet test Bizcord.sln
+```

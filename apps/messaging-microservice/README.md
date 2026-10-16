@@ -46,7 +46,45 @@ How it works:
 
 Stop it with `docker compose -f apps/messaging-microservice/docker-compose.yml down`.
 
-## Test
+## API
+
+| Request | Result |
+|---|---|
+| `POST /api/messages` with `{"channelId": guid, "authorId": guid, "content": "text"}` | `201 Created` with the message and a `Location` header, and a `MessagePostedEvent` is published. `400` if the message is invalid (empty content, content over 4000 characters, empty ids). |
+| `GET /api/messages/{id}` | `200` with the message, or `404` |
+| `GET /health` | `200 Healthy` |
+
+Optional channel check: if `ChannelService__BaseUrl` is set (for example `http://channels:8080`), the service calls `GET {baseUrl}/api/channels/{channelId}` before saving. `404` from that service gives `404`, any other failure gives `503`. When it is not set, any channel id is accepted.
+
+Try it (with the Docker stack running):
+
+```bash
+curl -i -X POST http://localhost:5001/api/messages \
+  -H 'Content-Type: application/json' \
+  -d '{"channelId":"11111111-1111-1111-1111-111111111111","authorId":"22222222-2222-2222-2222-222222222222","content":"Hello"}'
+```
+
+## Tests
+
+```bash
+dotnet test apps/messaging-microservice/tests                       # everything (the broker tests start RabbitMQ with Docker)
+dotnet test apps/messaging-microservice/tests --filter "Category!=Broker"   # fast tests, no Docker needed
+dotnet test apps/messaging-microservice/tests --filter "Category=Broker"    # only the real-RabbitMQ tests
+```
+
+| Test class | Level | What is real | What is faked |
+|---|---|---|---|
+| `Domain/MessageTests` | Unit | `Message` | nothing |
+| `Controllers/MessagesControllerTests` | Unit with Moq (mocks) | the controller | repository, message client, channel directory |
+| `Api/PostMessageTests` | Provider contract and HTTP round trip | the whole service | the broker (`FakeMessageClient`) |
+| `Service/ChannelCheckServiceTests` | Service test | the whole service | the Channel service (WireMock stub) |
+| `Integration/RealBrokerTests` | Integration | the whole service **and RabbitMQ** | nothing |
+
+`Api/PostMessageTests.PostMessage_PublishedEvent_MeetsContract` is the most important test: it checks the **values** of every field in the published `MessagePostedEvent`, which protects the services that consume it.
+
+The broker tests use [Testcontainers](https://dotnet.testcontainers.org/) to start a throwaway RabbitMQ (needs Docker). To use an existing broker instead, set `RABBITMQ_HOST`.
+
+## Test (all projects)
 
 ```bash
 dotnet test Bizcord.sln
@@ -59,4 +97,4 @@ dotnet test Bizcord.sln
 | Project structure and boilerplate | Done |
 | Message client (`packages/MessageClient`), registered in `Program.cs` | Done |
 | Dockerfile and Compose | Done |
-| `POST /api/messages` and tests | Not yet |
+| `POST /api/messages`, `GET /api/messages/{id}` and tests | Done |

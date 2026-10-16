@@ -20,6 +20,8 @@ Requires the .NET 8 SDK.
 dotnet run --project apps/messaging-microservice/src
 ```
 
+The service reads `RABBITMQ_HOST` (default `localhost`) to find RabbitMQ. The connection is made on first use, so the API starts without a broker.
+
 The API listens on `http://localhost:5001`. Swagger UI is at `/swagger` in the Development environment, and `GET /health` returns `200`.
 
 ## Test
@@ -33,6 +35,6 @@ dotnet test Bizcord.sln
 | Step | State |
 |---|---|
 | Project structure and boilerplate | Done |
-| Message client | Not yet |
+| Message client (`packages/MessageClient`), registered in `Program.cs` | Done |
 | Dockerfile and Compose | Not yet |
 | `POST /api/messages` and tests | Not yet |

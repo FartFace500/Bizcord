@@ -1,0 +1,27 @@
+# Run from the repository root:
+#   docker compose -f apps/messaging-microservice/docker-compose.yml up --build
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"     # AMQP (messages)
+      - "15672:15672"   # management UI: http://localhost:15672 (guest / guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  messaging:
+    build:
+      context: ../..
+      dockerfile: apps/messaging-microservice/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "5001:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      ASPNETCORE_ENVIRONMENT: Development

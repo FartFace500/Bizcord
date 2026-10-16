@@ -97,6 +97,7 @@ Because the weeks build on each other, these files change more than once. The me
 |---|---|
 | `apps/messaging-microservice/src/Program.cs` | W37 (boilerplate), W37 (register message client), W40 (register repository and handlers) |
 | `apps/messaging-microservice/src/Messaging.csproj` | W37, W37 (package refs), W40 |
-| `apps/messaging-microservice/README.md` | W37, W39, W40 |
+| `apps/messaging-microservice/README.md` | W37, W37 (message client), W39, W40 |
+| `apps/messaging-microservice/Dockerfile` | W39, W40 (copy `Shared.Contracts`) |
 | `Bizcord.sln` | W37 and W40 |
 | `docs/05-messaging-service-design.md` | W36 (plan), W40 (reconciled with real code) |

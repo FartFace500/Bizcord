@@ -38,6 +38,7 @@ Then inject `IMessageClient` wherever you need to publish.
 ## Things to know
 
 - **`SubscriptionPrefix` must be unique per service.** It forms the queue name (`<prefix>-<MessageType>`). Two services with the same prefix would share one queue and each receive only some of the messages. Several instances of the same service share a queue on purpose, so the work is split between them.
+- **Publisher confirms are on by default** (`publisherConfirms=true;timeout=10` is added to the connection string). `PublishAsync` then only completes once RabbitMQ has accepted the message, and throws otherwise. Set `PublisherConfirms = false` or `TimeoutSeconds` on `RabbitMqClientOptions` to change this.
 - The RabbitMQ connection is created on first use, not at startup. The app can start and be tested without a broker.
 - Handlers are resolved from a new DI scope for every message, so they can use scoped services.
 - EasyNetQ serializes messages as JSON, so message types need public properties with setters (or init).

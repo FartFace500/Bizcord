@@ -12,9 +12,11 @@ public class MessagesController : ControllerBase
     private readonly IMessageRepository _repository;
     private readonly IMessageClient _messageClient;
     private readonly IChannelDirectory _channels;
+    private readonly ILogger<MessagesController> _logger;
 
-    public MessagesController(IMessageRepository repository, IMessageClient messageClient, IChannelDirectory channels)
+    public MessagesController(IMessageRepository repository, IMessageClient messageClient, IChannelDirectory channels, ILogger<MessagesController> logger)
     {
+        _logger = logger;
         _repository = repository;
         _messageClient = messageClient;
         _channels = channels;
@@ -49,14 +51,23 @@ public class MessagesController : ControllerBase
 
         await _repository.Save(message);
 
-        await _messageClient.PublishAsync(new MessagePostedEvent
+        try
         {
-            MessageId = message.Id,
-            ChannelId = message.ChannelId,
-            AuthorId = message.AuthorId,
-            Content = message.Content,
-            PostedAt = message.PostedAt
-        }, cancellationToken);
+            await _messageClient.PublishAsync(new MessagePostedEvent
+            {
+                MessageId = message.Id,
+                ChannelId = message.ChannelId,
+                AuthorId = message.AuthorId,
+                Content = message.Content,
+                PostedAt = message.PostedAt
+            }, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogError(ex, "Message {MessageId} was saved but MessagePostedEvent could not be published", message.Id);
+            return Fail(StatusCodes.Status503ServiceUnavailable, "Message broker unavailable",
+                $"Message {message.Id} was saved, but other services were not notified because the message broker could not be reached.");
+        }
 
         return CreatedAtAction(nameof(GetMessage), new { id = message.Id }, MessageDto.From(message));
     }

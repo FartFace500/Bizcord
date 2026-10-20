@@ -1,78 +1,90 @@
 # Messaging microservice
 
-The Messaging Service of Bizcord. It accepts messages, stores them and announces them to the rest of the platform. See [`docs/`](../../docs/README.md) for the design.
+The Messaging Service of Bizcord. It accepts messages, stores them and publishes a `MessagePostedEvent` to RabbitMQ so other services can react. See [`docs/`](../../docs/README.md) for the design.
 
-## Layout
+## Prerequisites
 
-```
-apps/messaging-microservice/
-├── src/          ASP.NET Core Web API (Messaging.csproj, assembly Bizcord.Messaging)
-├── tests/        xUnit tests (Messaging.Tests.csproj)
-├── Dockerfile
-└── README.md
-```
+| Tool | Needed for |
+|---|---|
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running) | Running the service with RabbitMQ, and the broker integration tests |
+| [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) | Running the tests, or running the service without Docker |
 
-## Run locally
+Free ports: `5001` (API), `5672` and `15672` (RabbitMQ).
 
-Requires the .NET 8 SDK.
+**All commands below are run from the repository root** (the folder with `Bizcord.sln`), not from this folder.
 
-```bash
-dotnet run --project apps/messaging-microservice/src
-```
-
-The service reads `RABBITMQ_HOST` (default `localhost`) to find RabbitMQ. The connection is made on first use, so the API starts without a broker.
-
-The API listens on `http://localhost:5001`. Swagger UI is at `/swagger` in the Development environment, and `GET /health` returns `200`.
-
-## Run with Docker
-
-From the repository root (the Dockerfile needs the root as build context, because the service references `packages/`):
+## 1. Start it
 
 ```bash
 docker compose -f apps/messaging-microservice/docker-compose.yml up --build
 ```
 
-| What | Where |
+The first build downloads the .NET and RabbitMQ images and takes a few minutes. It is ready when the log shows `Now listening on: http://[::]:8080`.
+
+| What | URL |
 |---|---|
-| Messaging API | http://localhost:5001 (`/health`, `/swagger`) |
+| Swagger UI | http://localhost:5001/swagger |
+| Health check | http://localhost:5001/health (answers `Healthy`) |
 | RabbitMQ management UI | http://localhost:15672 (user `guest`, password `guest`) |
-| RabbitMQ AMQP | `localhost:5672` |
 
-How it works:
-- **Dockerfile**: multi-stage (SDK image to build, ASP.NET runtime image to run). Project files are copied and restored first, so the restore layer is cached until a dependency changes. The container runs as a non-root user and listens on port 8080 (the .NET 8 default).
-- **docker-compose.yml**: `rabbitmq:3-management` with a health check (`rabbitmq-diagnostics check_port_connectivity`). The service uses `depends_on: condition: service_healthy`, so it only starts once the broker accepts connections. `depends_on` alone would only wait for the container to start.
-- The service finds the broker through the `RABBITMQ_HOST=rabbitmq` environment variable. `rabbitmq` is the Compose service name, which Docker resolves to the container's IP.
-- The root `.dockerignore` keeps `docs/`, `bin/` and `obj/` out of the build context.
+Stop it with `Ctrl+C`, then `docker compose -f apps/messaging-microservice/docker-compose.yml down`.
 
-Stop it with `docker compose -f apps/messaging-microservice/docker-compose.yml down`.
+## 2. Try it in Swagger
 
-## API
+1. Open http://localhost:5001/swagger.
+2. Open **POST /api/messages**, click **Try it out**, and use this body (or keep the generated example, which is also valid):
 
-| Request | Result |
-|---|---|
-| `POST /api/messages` with `{"channelId": guid, "authorId": guid, "content": "text"}` | `201 Created` with the message and a `Location` header, and a `MessagePostedEvent` is published. `400` if the message is invalid (empty content, content over 4000 characters, empty ids). |
-| `GET /api/messages/{id}` | `200` with the message, or `404` |
-| `GET /health` | `200 Healthy` |
+   ```json
+   {
+     "channelId": "11111111-1111-1111-1111-111111111111",
+     "authorId": "22222222-2222-2222-2222-222222222222",
+     "content": "Hello Bizcord"
+   }
+   ```
 
-Optional channel check: if `ChannelService__BaseUrl` is set (for example `http://channels:8080`), the service calls `GET {baseUrl}/api/channels/{channelId}` before saving. `404` from that service gives `404`, any other failure gives `503`. When it is not set, any channel id is accepted.
+3. Click **Execute**. Expected: **201** with the saved message, including its `messageId`.
+4. Copy the `messageId`, open **GET /api/messages/{id}**, paste it and click **Execute**. Expected: **200** with the same message.
+5. Send the POST again with `"content": ""`. Expected: **400** with `"detail": "A message cannot be empty."`. Nothing is saved or published.
 
-Try it (with the Docker stack running):
+The same with curl:
 
 ```bash
 curl -i -X POST http://localhost:5001/api/messages \
-  -H 'Content-Type: application/json' \
-  -d '{"channelId":"11111111-1111-1111-1111-111111111111","authorId":"22222222-2222-2222-2222-222222222222","content":"Hello"}'
+  -H "Content-Type: application/json" \
+  -d '{"channelId":"11111111-1111-1111-1111-111111111111","authorId":"22222222-2222-2222-2222-222222222222","content":"Hello Bizcord"}'
 ```
 
-## Tests
+## 3. See the event in RabbitMQ
+
+The service publishes to a RabbitMQ exchange. No other Bizcord service runs here, so nothing consumes the event yet. To look at it, give the exchange a queue in the management UI:
+
+1. Post at least one message (step 2). This creates the exchange.
+2. Open http://localhost:15672 and log in with `guest` / `guest`.
+3. **Exchanges** tab: the exchange `Shared.Contracts.Events.MessagePostedEvent, Shared.Contracts` is listed, and its message rate goes up for every post.
+4. **Queues and Streams** tab, **Add a new queue**: name it `demo-monitor` and click **Add queue**.
+5. **Exchanges** tab: open the `MessagePostedEvent` exchange. Under **Bindings**, **To queue** `demo-monitor`, routing key `#`, then click **Bind**.
+6. Post another message in Swagger.
+7. **Queues and Streams** tab: open `demo-monitor`, then **Get messages** and **Get Message(s)**. The payload is the event, for example:
+
+   ```json
+   {"MessageId":"0be33f3e-...","ChannelId":"11111111-...","AuthorId":"22222222-...","Content":"Hello Bizcord","PostedAt":"2026-10-20T16:40:31.23Z"}
+   ```
+
+## 4. Run the tests
 
 ```bash
-dotnet test apps/messaging-microservice/tests                       # everything (the broker tests start RabbitMQ with Docker)
-dotnet test apps/messaging-microservice/tests --filter "Category!=Broker"   # fast tests, no Docker needed
-dotnet test apps/messaging-microservice/tests --filter "Category=Broker"    # only the real-RabbitMQ tests
+dotnet test Bizcord.sln
 ```
 
-| Test class | Level | What is real | What is faked |
+This runs every test in the repository: 38 here and 11 for `packages/MessageClient`. The 3 broker tests start a temporary RabbitMQ container themselves through [Testcontainers](https://dotnet.testcontainers.org/), so Docker must be running. The stack from step 1 does not need to be running, and it doesn't get in the way if it is.
+
+Without Docker, skip the broker tests:
+
+```bash
+dotnet test Bizcord.sln --filter "Category!=Broker"
+```
+
+| Test class (in `tests/`) | Level | What is real | What is faked |
 |---|---|---|---|
 | `Domain/MessageTests` | Unit | `Message` | nothing |
 | `Controllers/MessagesControllerTests` | Unit with Moq (mocks) | the controller | repository, message client, channel directory |
@@ -80,21 +92,47 @@ dotnet test apps/messaging-microservice/tests --filter "Category=Broker"    # on
 | `Service/ChannelCheckServiceTests` | Service test | the whole service | the Channel service (WireMock stub) |
 | `Integration/RealBrokerTests` | Integration | the whole service **and RabbitMQ** | nothing |
 
-`Api/PostMessageTests.PostMessage_PublishedEvent_MeetsContract` is the most important test: it checks the **values** of every field in the published `MessagePostedEvent`, which protects the services that consume it.
+`Api/PostMessageTests.PostMessage_PublishedEvent_MeetsContract` is the most important test. It checks the **values** of every field in the published `MessagePostedEvent`, which protects the services that consume it.
 
-The broker tests use [Testcontainers](https://dotnet.testcontainers.org/) to start a throwaway RabbitMQ (needs Docker). To use an existing broker instead, set `RABBITMQ_HOST`.
+## API
 
-## Test (all projects)
+| Request | Result |
+|---|---|
+| `POST /api/messages` with `{"channelId": guid, "authorId": guid, "content": "text"}` | `201 Created` with the message and a `Location` header, and a `MessagePostedEvent` is published. `400` if the message is invalid (empty content, content over 4000 characters, empty ids). `503` if the message was saved but RabbitMQ could not be reached. |
+| `GET /api/messages/{id}` | `200` with the message, or `404` |
+| `GET /health` | `200 Healthy` |
+
+Messages are kept in memory, so they are gone when the service restarts.
+
+## Configuration
+
+| Setting (environment variable) | Default | Meaning |
+|---|---|---|
+| `RABBITMQ_HOST` | `localhost` | RabbitMQ host. Compose sets it to `rabbitmq`, the broker's service name. |
+| `ChannelService__BaseUrl` | not set | Optional. If set, the service calls `GET {url}/api/channels/{channelId}` before saving: a `404` there gives `404`, any other failure gives `503`. When not set, any channel id is accepted. |
+
+## Run without Docker (optional)
+
+The service needs RabbitMQ to publish. Start only the broker, then run the service with the .NET SDK:
 
 ```bash
-dotnet test Bizcord.sln
+docker run -d --name bizcord-rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+dotnet run --project apps/messaging-microservice/src
 ```
 
-## Status
+Swagger is then at http://localhost:5001/swagger. Without RabbitMQ the API still starts, but `POST` answers `503` after about 10 seconds. Stop the broker afterwards with `docker rm -f bizcord-rabbitmq`.
 
-| Step | State |
+## How the Docker setup works
+
+- **Dockerfile**: multi-stage (the SDK image builds, the ASP.NET runtime image runs). Project files are copied and restored first, so the restore layer stays cached until a dependency changes. The container runs as a non-root user on port 8080 (the .NET 8 default). The build context is the repository root, because the service references projects in `packages/`.
+- **docker-compose.yml**: `rabbitmq:3-management` with a health check (`rabbitmq-diagnostics check_port_connectivity`). The service waits on `depends_on: condition: service_healthy`, so it only starts once the broker accepts connections. Plain `depends_on` would only wait for the container to start. `ASPNETCORE_ENVIRONMENT=Development` turns on Swagger.
+- The root `.dockerignore` keeps `docs/`, `bin/` and `obj/` out of the build context.
+
+## Troubleshooting
+
+| Problem | Fix |
 |---|---|
-| Project structure and boilerplate | Done |
-| Message client (`packages/MessageClient`), registered in `Program.cs` | Done |
-| Dockerfile and Compose | Done |
-| `POST /api/messages`, `GET /api/messages/{id}` and tests | Done |
+| `port is already allocated` | Another program uses 5001, 5672 or 15672. Stop it, or change the left-hand port in `docker-compose.yml` (for example `"5002:8080"`). |
+| `Cannot connect to the Docker daemon` | Start Docker Desktop. |
+| Broker tests fail with a Docker error | Docker isn't running. Start it, or use `--filter "Category!=Broker"`. |
+| Swagger shows 404 | Use http://localhost:5001/swagger (Swagger is only enabled in the Development environment, which Compose and `dotnet run` both set). |

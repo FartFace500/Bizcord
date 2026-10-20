@@ -2,6 +2,7 @@ using Bizcord.Messaging.Controllers;
 using Bizcord.Messaging.Domain;
 using MessageClient;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Shared.Contracts.Events;
 
@@ -29,7 +30,7 @@ public class MessagesControllerTests
             .Callback(() => _calls.Add("publish"))
             .Returns(Task.CompletedTask);
 
-        _controller = new MessagesController(_repository.Object, _messageClient.Object, _channels.Object);
+        _controller = new MessagesController(_repository.Object, _messageClient.Object, _channels.Object, NullLogger<MessagesController>.Instance);
     }
 
     private static CreateMessageRequest ValidRequest() => new(Guid.NewGuid(), Guid.NewGuid(), "Hello world");
@@ -104,6 +105,19 @@ public class MessagesControllerTests
 
         result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(503);
         _calls.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task PostMessage_Returns503_WhenTheBrokerIsUnavailable()
+    {
+        _messageClient.Setup(m => m.PublishAsync(It.IsAny<MessagePostedEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TimeoutException("broker down"));
+
+        var result = await _controller.PostMessage(ValidRequest(), CancellationToken.None);
+
+        var failure = result.Should().BeOfType<ObjectResult>().Subject;
+        failure.StatusCode.Should().Be(503);
+        failure.Value.Should().BeOfType<ProblemDetails>().Which.Detail.Should().Contain("was saved");
     }
 
     [Fact]

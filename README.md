@@ -8,9 +8,8 @@ Backend of **Bizcord**, a Discord-like enterprise communication platform, built 
 | `apps/messaging-microservice/` | The Messaging Service (`src/`, `tests/`, `Dockerfile`, `docker-compose.yml`) |
 | `packages/MessageClient/` | `IMessageClient` abstraction over RabbitMQ (EasyNetQ) |
 | `packages/Shared.Contracts/` | Events shared between services |
-| `study/` | Chapter summaries and small study examples (not part of the assignment) |
 
-Start with [`docs/README.md`](docs/README.md) and [`docs/07-work-plan.md`](docs/07-work-plan.md) to find your way around. Each course week was developed on its own branch and merged into `main`.
+Start with [`docs/README.md`](docs/README.md) and [`docs/06-work-plan.md`](docs/06-work-plan.md) to find your way around. Each course week was developed on its own branch and merged into `main`.
 
 ## Quick start
 

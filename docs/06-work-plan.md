@@ -1,4 +1,4 @@
-# 7. Work plan: weeks, branches and deliverables
+# 6. Work plan: weeks, branches and deliverables
 
 Use this page to navigate the repository. Each course week has its own branch, merged into `main` with a merge commit so the history shows the work per week.
 
@@ -52,42 +52,30 @@ flowchart LR
 ## Branch and merge order
 
 ```mermaid
-gitGraph
-    commit id: "start"
-    branch docs/analysis-and-design
-    commit id: "W36 design docs"
-    checkout main
-    merge docs/analysis-and-design
-    branch chore/initialize-project
-    commit id: "W37 lab 1+2: structure + boilerplate"
-    checkout main
-    merge chore/initialize-project
-    branch feat/message-client
-    commit id: "W37 lab 3: MessageClient"
-    checkout main
-    merge feat/message-client
-    branch chore/dockerize
-    commit id: "W39: Dockerfile + compose"
-    checkout main
-    merge chore/dockerize
-    branch feat/post-message-and-tests
-    commit id: "W40: feature + contracts"
-    commit id: "W40: tests"
-    checkout main
-    merge feat/post-message-and-tests
+flowchart TB
+    M0(["main"]) --> B1["docs/analysis-and-design<br/>W36: design docs"]
+    B1 -- merge --> M1(["main"])
+    M1 --> B2["chore/initialize-project<br/>W37 lab 1 and 2: structure and boilerplate"]
+    B2 -- merge --> M2(["main"])
+    M2 --> B3["feat/message-client<br/>W37 lab 3: MessageClient"]
+    B3 -- merge --> M3(["main"])
+    M3 --> B4["chore/dockerize<br/>W39: Dockerfile and Compose"]
+    B4 -- merge --> M4(["main"])
+    M4 --> B5["feat/post-message-and-tests<br/>W40: feature, contracts and tests"]
+    B5 -- merge --> M5(["main"])
 ```
+
+Each branch starts from the latest `main` and is merged back before the next one starts. Rounded boxes are `main` after each merge.
 
 ## Where to find each task
 
 | Task | Week | Branch | What to look at |
 |---|---|---|---|
-| 1. Analysis and design | 36 | `docs/analysis-and-design` | `docs/01` to `docs/07` |
+| 1. Analysis and design | 36 | `docs/analysis-and-design` | `docs/01` to `docs/06` |
 | 2a. Setup and boilerplate | 37 | `chore/initialize-project` | `apps/messaging-microservice/` (`src/`, `tests/`, `Dockerfile`, `README.md`) |
 | 2b. Message client | 37 | `feat/message-client` | `packages/MessageClient/` |
 | 4. Deployment | 39 | `chore/dockerize` | `apps/messaging-microservice/Dockerfile`, `docker-compose.yml`, `.dockerignore` |
 | 5. First feature and testing | 40 | `feat/post-message-and-tests` | `packages/Shared.Contracts/`, `apps/messaging-microservice/src/` and `tests/` |
-
-Study material (chapter summaries and small demos) is in `study/`. It is separate from the assignment.
 
 ## Files that several weeks touch
 

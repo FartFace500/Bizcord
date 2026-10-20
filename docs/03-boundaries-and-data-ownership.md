@@ -74,6 +74,6 @@ Services are **eventually consistent**. When a message is posted:
 
 This is acceptable for chat. It is what lets each service be deployed, scaled and fail on its own.
 
-**What if the broker is down at publish time?** The message is already saved, but the event is lost. This is a known gap in the simple design (the "dual write" problem). It is listed as a limitation in [06-decisions.md](06-decisions.md). The standard fix, the transactional outbox pattern, is out of scope for this assignment.
+**What if the broker is down at publish time?** The message is already saved, but the event is lost. This is a known gap in the simple design (the "dual write" problem). The standard fix, the transactional outbox pattern, is out of scope for this assignment.
 
 Next: [04-interactions.md](04-interactions.md).

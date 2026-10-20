@@ -105,26 +105,3 @@ dotnet test Bizcord.sln --filter 'Category!=Broker'
 | `GET /health` | `200 Healthy` |
 
 Messages are kept in memory, so they are gone when the service restarts.
-
-## Configuration
-
-| Setting (environment variable) | Default | Meaning |
-|---|---|---|
-| `RABBITMQ_HOST` | `localhost` | RabbitMQ host. Compose sets it to `rabbitmq`, the broker's service name. |
-| `ChannelService__BaseUrl` | not set | Optional. If set, the service calls `GET {url}/api/channels/{channelId}` before saving: a `404` there gives `404`, any other failure gives `503`. When not set, any channel id is accepted. |
-
-## How the Docker setup works
-
-- **Dockerfile**: multi-stage (the SDK image builds, the ASP.NET runtime image runs). Project files are copied and restored first, so the restore layer stays cached until a dependency changes. The container runs as a non-root user on port 8080 (the .NET 8 default). The build context is the repository root, because the service references projects in `packages/`.
-- **docker-compose.yml**: `rabbitmq:3-management` with a health check (`rabbitmq-diagnostics check_port_connectivity`). The service waits on `depends_on: condition: service_healthy`, so it only starts once the broker accepts connections. Plain `depends_on` would only wait for the container to start. `ASPNETCORE_ENVIRONMENT=Development` turns on Swagger.
-- The root `.dockerignore` keeps `docs/`, `bin/` and `obj/` out of the build context.
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| `port is already allocated` | Another program uses 5001, 5672 or 15672. Stop it, or change the left-hand port in `docker-compose.yml` (for example `"5002:8080"`). |
-| `Cannot connect to the Docker daemon` | Start Docker Desktop. |
-| Broker tests fail with a Docker error | Docker isn't running. Start it, or use `--filter 'Category!=Broker'`. |
-| `dotnet: command not found` | The .NET 8 SDK is not installed in that terminal. A Windows install works in PowerShell and Git Bash but not inside WSL, which needs its own install. Check with `dotnet --version`. |
-| Swagger shows 404 | Use http://localhost:5001/swagger (Swagger is only enabled in the Development environment, which Compose sets). |

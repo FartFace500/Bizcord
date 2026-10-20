@@ -24,4 +24,4 @@ docker compose -f apps/messaging-microservice/docker-compose.yml up --build
 dotnet test Bizcord.sln
 ```
 
-Details and troubleshooting are in the [service README](apps/messaging-microservice/README.md).
+Details and walkthrough are in the [service README](apps/messaging-microservice/README.md).

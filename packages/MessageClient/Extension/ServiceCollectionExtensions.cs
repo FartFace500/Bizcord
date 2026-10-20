@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         MessageHandlerOptions handlerOptions)
     {
         services.TryAddSingleton(handlerOptions);
-        services.TryAddSingleton<IBus>(_ => RabbitHutch.CreateBus(clientOptions.ConnectionString, register => register.EnableSystemTextJson()));
+        services.TryAddSingleton<IBus>(_ => RabbitHutch.CreateBus(clientOptions.BuildConnectionString(), register => register.EnableSystemTextJson()));
         services.TryAddSingleton<IMessageClient, RabbitMqMessageClient>();
         return services;
     }

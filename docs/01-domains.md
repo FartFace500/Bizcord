@@ -45,7 +45,7 @@ Reading guide: solid arrows are asynchronous events (see [04-interactions.md](04
 
 ## Why these domains
 
-The split follows the rule from chapters 2 and 3 of *Building Microservices*: group things that **change together** (high cohesion) and keep different reasons to change apart (low coupling).
+The split follows two rules: group things that **change together** (high cohesion) and keep different reasons to change apart (low coupling).
 
 | Domain | Business question it answers | Why it is separate |
 |---|---|---|

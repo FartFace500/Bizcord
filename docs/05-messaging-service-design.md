@@ -16,8 +16,7 @@ This page is the map of the code. It shows where each class lives and how the pi
 ├── packages/
 │   ├── MessageClient/                IMessageClient + RabbitMQ (EasyNetQ) adapter
 │   └── Shared.Contracts/             events shared between services
-├── docs/                             this analysis and design
-└── study/                            chapter summaries and small study examples
+└── docs/                             this analysis and design
 ```
 
 ## Class diagram
@@ -138,7 +137,7 @@ classDiagram
 
 ## Test strategy
 
-Follows chapter 9: many small fast tests, fewer wide ones. The contract tests are the most important, because they protect the other teams.
+Many small, fast tests and fewer wide ones (the test pyramid). The contract tests are the most important, because they protect the other teams.
 
 | Level | What it checks | Real | Faked | Where |
 |---|---|---|---|---|
@@ -148,7 +147,7 @@ Follows chapter 9: many small fast tests, fewer wide ones. The contract tests ar
 | **Service test** (WireMock) | The Messaging Service behaves correctly when the Channel service answers 200, 404, 500 | Whole service | Channel service is a WireMock stub (HTTP) | `tests/` |
 | **Integration** | Full round trip with **real RabbitMQ**: `POST` then the event arrives on the broker | Whole service and broker | nothing | `tests/` (needs Docker) |
 
-Mocks versus stubs (chapter 9): the Moq controller tests are **mocks** (they verify that `Save` and `PublishAsync` were called). The WireMock tests use **stubs** (canned answers from the Channel service).
+Mocks versus stubs: the Moq controller tests are **mocks** (they verify that `Save` and `PublishAsync` were called). The WireMock tests use **stubs** (canned answers from the Channel service).
 
 ## Where the code is
 
@@ -170,4 +169,4 @@ Mocks versus stubs (chapter 9): the Moq controller tests are **mocks** (they ver
 | `RABBITMQ_HOST` | environment variable | `localhost` | RabbitMQ host name. In Compose it is `rabbitmq`. |
 | `ChannelService__BaseUrl` | environment variable | not set | If set, enables the channel check against this URL. If not set, every channel id is accepted. |
 
-Next: [06-decisions.md](06-decisions.md) and [07-work-plan.md](07-work-plan.md).
+Next: [06-work-plan.md](06-work-plan.md).

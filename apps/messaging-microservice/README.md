@@ -7,9 +7,11 @@ The Messaging Service of Bizcord. It accepts messages, stores them and publishes
 | Tool | Needed for |
 |---|---|
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running) | Running the service with RabbitMQ, and the broker integration tests |
-| [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) | Running the tests, or running the service without Docker |
+| [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) | Running the tests |
 
 Free ports: `5001` (API), `5672` and `15672` (RabbitMQ).
+
+The commands work in PowerShell and in bash (Git Bash, macOS, Linux, WSL).
 
 **All commands below are run from the repository root** (the folder with `Bizcord.sln`), not from this folder.
 
@@ -46,7 +48,7 @@ Stop it with `Ctrl+C`, then `docker compose -f apps/messaging-microservice/docke
 4. Copy the `messageId`, open **GET /api/messages/{id}**, paste it and click **Execute**. Expected: **200** with the same message.
 5. Send the POST again with `"content": ""`. Expected: **400** with `"detail": "A message cannot be empty."`. Nothing is saved or published.
 
-The same with curl:
+The same with curl (bash):
 
 ```bash
 curl -i -X POST http://localhost:5001/api/messages \
@@ -81,7 +83,7 @@ This runs every test in the repository: 38 here and 11 for `packages/MessageClie
 Without Docker, skip the broker tests:
 
 ```bash
-dotnet test Bizcord.sln --filter "Category!=Broker"
+dotnet test Bizcord.sln --filter 'Category!=Broker'
 ```
 
 | Test class (in `tests/`) | Level | What is real | What is faked |
@@ -111,17 +113,6 @@ Messages are kept in memory, so they are gone when the service restarts.
 | `RABBITMQ_HOST` | `localhost` | RabbitMQ host. Compose sets it to `rabbitmq`, the broker's service name. |
 | `ChannelService__BaseUrl` | not set | Optional. If set, the service calls `GET {url}/api/channels/{channelId}` before saving: a `404` there gives `404`, any other failure gives `503`. When not set, any channel id is accepted. |
 
-## Run without Docker (optional)
-
-The service needs RabbitMQ to publish. Start only the broker, then run the service with the .NET SDK:
-
-```bash
-docker run -d --name bizcord-rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
-dotnet run --project apps/messaging-microservice/src
-```
-
-Swagger is then at http://localhost:5001/swagger. Without RabbitMQ the API still starts, but `POST` answers `503` after about 10 seconds. Stop the broker afterwards with `docker rm -f bizcord-rabbitmq`.
-
 ## How the Docker setup works
 
 - **Dockerfile**: multi-stage (the SDK image builds, the ASP.NET runtime image runs). Project files are copied and restored first, so the restore layer stays cached until a dependency changes. The container runs as a non-root user on port 8080 (the .NET 8 default). The build context is the repository root, because the service references projects in `packages/`.
@@ -134,5 +125,6 @@ Swagger is then at http://localhost:5001/swagger. Without RabbitMQ the API still
 |---|---|
 | `port is already allocated` | Another program uses 5001, 5672 or 15672. Stop it, or change the left-hand port in `docker-compose.yml` (for example `"5002:8080"`). |
 | `Cannot connect to the Docker daemon` | Start Docker Desktop. |
-| Broker tests fail with a Docker error | Docker isn't running. Start it, or use `--filter "Category!=Broker"`. |
-| Swagger shows 404 | Use http://localhost:5001/swagger (Swagger is only enabled in the Development environment, which Compose and `dotnet run` both set). |
+| Broker tests fail with a Docker error | Docker isn't running. Start it, or use `--filter 'Category!=Broker'`. |
+| `dotnet: command not found` | The .NET 8 SDK is not installed in that terminal. A Windows install works in PowerShell and Git Bash but not inside WSL, which needs its own install. Check with `dotnet --version`. |
+| Swagger shows 404 | Use http://localhost:5001/swagger (Swagger is only enabled in the Development environment, which Compose sets). |

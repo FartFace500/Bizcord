@@ -11,7 +11,7 @@ Documentation for the Messaging microservice of **Bizcord**, a Discord-like ente
 | 3 | [03-boundaries-and-data-ownership.md](03-boundaries-and-data-ownership.md) | Who owns which data? What crosses a boundary? |
 | 4 | [04-interactions.md](04-interactions.md) | How do services talk? Event catalog, message flow (swimlane) |
 | 5 | [05-messaging-service-design.md](05-messaging-service-design.md) | Class diagram, REST API, test strategy |
-| 6 | [06-work-plan.md](06-work-plan.md) | Swimlane of the weeks, branches, where to find things |
+| 6 | [06-work-plan.md](06-work-plan.md) | Swimlane of the weeks, where to find things |
 
 ## One-picture summary
 

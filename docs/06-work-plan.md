@@ -1,6 +1,6 @@
-# 6. Work plan: weeks, branches and deliverables
+# 6. Work plan: weeks and deliverables
 
-Use this page to navigate the repository. Each course week has its own branch, merged into `main` with a merge commit so the history shows the work per week.
+Use this page to navigate the repository: what was delivered in each course week, and where to find it.
 
 ## Swimlane: what is delivered, by whom, when
 
@@ -16,7 +16,7 @@ flowchart LR
 
     subgraph L2["Lane: Repository and structure"]
         direction LR
-        R1["W37 Lab 1: branch chore/initialize-project,<br/>src/ tests/ Dockerfile README"]
+        R1["W37 Lab 1: project structure<br/>src/ tests/ Dockerfile README"]
         R2["W37 Lab 2: .NET web API in<br/>apps/messaging-microservice"]
     end
 
@@ -49,37 +49,19 @@ flowchart LR
     F2 --> D2
 ```
 
-## Branch and merge order
-
-```mermaid
-flowchart TB
-    M0(["main"]) --> B1["docs/analysis-and-design<br/>W36: design docs"]
-    B1 -- merge --> M1(["main"])
-    M1 --> B2["chore/initialize-project<br/>W37 lab 1 and 2: structure and boilerplate"]
-    B2 -- merge --> M2(["main"])
-    M2 --> B3["feat/message-client<br/>W37 lab 3: MessageClient"]
-    B3 -- merge --> M3(["main"])
-    M3 --> B4["chore/dockerize<br/>W39: Dockerfile and Compose"]
-    B4 -- merge --> M4(["main"])
-    M4 --> B5["feat/post-message-and-tests<br/>W40: feature, contracts and tests"]
-    B5 -- merge --> M5(["main"])
-```
-
-Each branch starts from the latest `main` and is merged back before the next one starts. Rounded boxes are `main` after each merge.
-
 ## Where to find each task
 
-| Task | Week | Branch | What to look at |
-|---|---|---|---|
-| 1. Analysis and design | 36 | `docs/analysis-and-design` | `docs/01` to `docs/06` |
-| 2a. Setup and boilerplate | 37 | `chore/initialize-project` | `apps/messaging-microservice/` (`src/`, `tests/`, `Dockerfile`, `README.md`) |
-| 2b. Message client | 37 | `feat/message-client` | `packages/MessageClient/` |
-| 4. Deployment | 39 | `chore/dockerize` | `apps/messaging-microservice/Dockerfile`, `docker-compose.yml`, `.dockerignore` |
-| 5. First feature and testing | 40 | `feat/post-message-and-tests` | `packages/Shared.Contracts/`, `apps/messaging-microservice/src/` and `tests/` |
+| Task | Week | What to look at |
+|---|---|---|
+| 1. Analysis and design | 36 | `docs/01` to `docs/06` |
+| 2a. Setup and boilerplate | 37 | `apps/messaging-microservice/` (`src/`, `tests/`, `Dockerfile`, `README.md`) |
+| 2b. Message client | 37 | `packages/MessageClient/` |
+| 4. Deployment | 39 | `apps/messaging-microservice/Dockerfile`, `docker-compose.yml`, `.dockerignore` |
+| 5. First feature and testing | 40 | `packages/Shared.Contracts/`, `apps/messaging-microservice/src/` and `tests/` |
 
 ## Files that several weeks touch
 
-Because the weeks build on each other, these files change more than once. The merge order above avoids conflicts, since each branch starts from the latest `main`.
+Because the weeks build on each other, these files changed more than once.
 
 | File | Changed in |
 |---|---|
